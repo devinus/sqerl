@@ -35,3 +35,8 @@ as verbatim `LIMIT` and other trailing clauses, but using this feature
 is highly discouraged because it exposes you to SQL injection attacks.
 
 For usage examples, look at the file `test/sqerl_tests.erl`.
+
+Acknowledgements
+================
+
+Almost entirely based on ErlyWeb's ErlSQL by Yariv Sadan.

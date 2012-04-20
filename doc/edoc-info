@@ -1,0 +1,3 @@
+{application,sqerl}.
+{packages,[]}.
+{modules,[sqerl]}.

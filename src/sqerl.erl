@@ -6,9 +6,9 @@
 %% structure. If the structure is invalid, this function would
 %% crash.
 %%
-%% This function does not allow writing literal `WHERE`, `LIMIT`
+%% This function does not allow writing literal `WHERE', `LIMIT'
 %% and other trailing clauses. To write such clauses,
-%% call `unsafe_sql/1` or `unsafe_sql/2`.
+%% call `unsafe_sql/1' or `unsafe_sql/2'.
 -spec sql(Sqerl::term()) -> iolist().
 sql(Sqerl) ->
     sql2(Sqerl, true).
@@ -27,20 +27,20 @@ sql(Sqerl, false) ->
 %% structure. If the structure is invalid, this function
 %% throws an exception.
 %%
-%% This function allows writing literal `WHERE`, `LIMIT`
-%% and other trailing clauses, such as `{where, "a=" ++ Val}`,
-%% or `"WHERE a=" ++ Str ++ " LIMIT 5"`.
+%% This function allows writing literal `WHERE', `LIMIT'
+%% and other trailing clauses, such as `{where, "a=" ++ Val}',
+%% or `"WHERE a=" ++ Str ++ " LIMIT 5"'.
 %%
 %% Such clauses are unsafe because they expose you to SQL
-%% injection attacks. When you use `unsafe_sql`, make sure to
-%% quote all your strings using the `encode/1` function.
+%% injection attacks. When you use `unsafe_sql', make sure to
+%% quote all your strings using the `encode/1' function.
 %%
 %% @throws {error, {unsafe_expression, Expr}}
 -spec unsafe_sql(Sqerl::term()) -> iolist().
 unsafe_sql(Sqerl) ->
     sql2(Sqerl, false).
 
-%% @doc Similar to `unsafe_sql/1`, but accepts a boolean parameter
+%% @doc Similar to `unsafe_sql/1', but accepts a boolean parameter
 %% indicating if the return value should be a binary or an iolist.
 %%
 %% @throws {error, {unsafe_expression, Expr}}
@@ -50,7 +50,7 @@ unsafe_sql(Sqerl, true) ->
 unsafe_sql(Sqerl, false) ->
     unsafe_sql(Sqerl).
 
-%% @doc Calls `encode(Val, true)`.
+%% @doc Calls `encode(Val, true)'.
 -spec encode(Val::term()) -> binary().
 encode(Val) ->
     encode(Val, true).
@@ -178,8 +178,6 @@ sql2({delete, Table, Using, Where}, Safe) ->
     delete(Table, Using, Where, Safe);
 sql2({delete, Table, Using, Where, Extras}, Safe) ->
     delete(Table, Using, Where, Extras, Safe).
-
-%% Internal functions
 
 select(Fields, Safe) ->
     select(undefined, Fields, undefined, undefined, undefined, Safe).
