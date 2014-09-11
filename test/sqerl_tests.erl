@@ -187,8 +187,31 @@ safe_test_() ->
             {<<"SELECT name FROM search_people(age := 18)">>,
                 ?_safe_test({select,name,{from,{call,search_people,[{age, 18}]}}})
             },
-            {<<"SELECT * FROM foo JOIN bar ON foo.bar_id = bar.id">>,
-              ?_safe_test({select,'*',{from,foo,{join,bar,[{'foo.bar_id','=','bar.id'}]}}})
+            {<<"SELECT * FROM foo JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,join,bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo JOIN bar ON ((foo.bar_id = bar.id) AND (foo.bar_type = bar.type))">>,
+              ?_safe_test({select,'*',{from,{foo,join,bar,[
+                                                      {'and', [
+                                                          {'foo.bar_id','=','bar.id'},
+                                                          {'foo.bar_type','=','bar.type'}
+                                                        ]
+                                                      }]}}})
+            },
+            {<<"SELECT * FROM foo LEFT JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{left,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo INNER JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{inner,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo RIGHT JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{right,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo LEFT OUTER JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{left, outer,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo CROSS JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{cross,join},bar,{'foo.bar_id','=','bar.id'}}}})
             }
         ]
     }.

@@ -204,7 +204,15 @@ select(Modifier, Fields, Tables, WhereExpr, Extras, Safe) ->
             [S1, convert(Modifier1), $\s]
     end,
 
-    ListFun = fun(Val) -> expr2(Val, Safe) end,
+    ListFun = fun({_, join, _, _}=Val) ->
+        join(Val, Safe);
+                 ({_, {_, join}, _, _}=Val) ->
+        join(Val, Safe);
+                 ({_, {_, _, join}, _, _}=Val) ->
+        join(Val, Safe);
+                 (Val) ->
+        expr2(Val, Safe)
+    end,
     S3 = [S2, make_list(Fields, ListFun)],
     S4 = case Tables of
         undefined -> S3;
@@ -220,6 +228,30 @@ select(Modifier, Fields, Tables, WhereExpr, Extras, Safe) ->
         undefined -> S5;
         Expr -> [S5, Expr]
     end.
+
+join({Table, JoinType, Table2, JoinExpr}, Safe) ->
+  [ expr2(Table, Safe),
+    join(JoinType),
+    expr2(Table2, Safe),
+    <<" ON ">>,
+    make_list(JoinExpr, fun(Val) -> expr(Val, Safe) end) ].
+
+join(join) ->
+  <<" JOIN ">>;
+join({left, join}) ->
+  <<" LEFT JOIN ">>;
+join({inner, join}) ->
+  <<" INNER JOIN ">>;
+join({right, join}) ->
+  <<" RIGHT JOIN ">>;
+join({left, outer, join}) ->
+  <<" LEFT OUTER JOIN ">>;
+join({right, outer, join}) ->
+  <<" RIGHT OUTER JOIN ">>;
+join({full, outer, join}) ->
+  <<" FULL OUTER JOIN ">>;
+join({cross, join}) ->
+  <<" CROSS JOIN ">>.
 
 where(undefined, _) -> [];
 where(Expr, true) when is_list(Expr); is_binary(Expr) ->
