@@ -223,7 +223,7 @@ safe_test_() ->
               ?_safe_test({select,'*',{from,{foo,{right,join},bar,{'foo.bar_id','=','bar.id'}}}})
             },
             {<<"SELECT * FROM foo LEFT OUTER JOIN bar ON (foo.bar_id = bar.id)">>,
-              ?_safe_test({select,'*',{from,{foo,{left, outer,join},bar,{'foo.bar_id','=','bar.id'}}}})
+              ?_safe_test({select,'*',{from,{foo,{left,outer,join},bar,{'foo.bar_id','=','bar.id'}}}})
             },
             {<<"SELECT * FROM foo CROSS JOIN bar ON (foo.bar_id = bar.id)">>,
               ?_safe_test({select,'*',{from,{foo,{cross,join},bar,{'foo.bar_id','=','bar.id'}}}})
