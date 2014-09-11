@@ -358,18 +358,24 @@ delete(Table, Using, WhereExpr, Safe) ->
     delete(Table, Using, WhereExpr, undefined, Safe).
 
 delete(Table, Using, WhereExpr, Extras, Safe) ->
-    S1 = [<<"DELETE FROM ">>, convert(Table)],
-    S2 = if Using =:= undefined -> S1;
-        true -> [S1, <<" USING ">>, make_list(Using, fun convert/1)]
+    S1 = case Table of
+        Table when is_tuple(Table) ->
+            join(Table, Safe);
+        _Other ->
+            convert(Table)
     end,
-    S3 = case where(WhereExpr, Safe) of
-        undefined -> S2;
-        WhereClause -> [S2, WhereClause]
+    S2 = [<<"DELETE FROM ">>, S1],
+    S3 = if Using =:= undefined -> S2;
+        true -> [S2, <<" USING ">>, make_list(Using, fun convert/1)]
+    end,
+    S4 = case where(WhereExpr, Safe) of
+        undefined -> S3;
+        WhereClause -> [S3, WhereClause]
     end,
     if Extras =:= undefined ->
-        S3;
+        S4;
     true ->
-        [S3, extra_clause(Extras, Safe)]
+        [S4, extra_clause(Extras, Safe)]
     end.
 
 convert(Val) when is_atom(Val)->

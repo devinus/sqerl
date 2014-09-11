@@ -62,6 +62,11 @@ safe_test_() ->
                 ?_safe_test({delete,project,{a,'=',5}})
             },
 
+            {<<"DELETE FROM project JOIN client ON (project.client_id = client.id) WHERE (client.a = 8)">>,
+                ?_safe_test({delete,{project,join,client,
+                      {'project.client_id','=','client.id'}},{'client.a','=',8}})
+            },
+
             {<<"DELETE FROM project WHERE (a = 5)">>,
                 ?_safe_test({delete,{from,project},{where,{a,'=',5}}})
             },
