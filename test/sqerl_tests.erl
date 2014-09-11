@@ -44,6 +44,16 @@ safe_test_() ->
                                     {where,{'not',{a,'=',5}}}})
             },
 
+            {<<"UPDATE project JOIN client ON (project.client_id = client.id) SET foo = 5">>,
+                ?_safe_test({update,
+                    {project,join,client,{'project.client_id','=','client.id'}},[{foo,5}]})
+            },
+
+            {<<"UPDATE project INNER JOIN client ON (project.client_id = client.id) SET foo = 5">>,
+                ?_safe_test({update,
+                    {project,{inner,join},client,{'project.client_id','=','client.id'}},[{foo,5}]})
+            },
+
             {<<"DELETE FROM project">>,
                 ?_safe_test({delete,project})
             },

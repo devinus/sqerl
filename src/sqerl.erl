@@ -340,11 +340,16 @@ update(Table, Props, Safe) ->
 update(Table, Props, Where, Safe) when not is_list(Props) ->
     update(Table, [Props], Where, Safe);
 update(Table, Props, Where, Safe) ->
-    S1 = [<<"UPDATE ">>, convert(Table), <<" SET ">>],
+    S1 = case Table of
+        Table when is_tuple(Table) ->
+            join(Table, Safe);
+        _Other ->
+            convert(Table)
+    end,
     S2 = make_list(Props, fun({Field, Val}) ->
         [convert(Field), <<" = ">>, expr(Val, Safe)]
     end),
-    [S1, S2, where(Where, Safe)].
+    [<<"UPDATE ">>, S1, <<" SET ">>, S2, where(Where, Safe)].
 
 delete(Table, Safe) ->
     delete(Table, undefined, undefined, undefined, Safe).
