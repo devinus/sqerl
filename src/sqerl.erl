@@ -204,19 +204,11 @@ select(Modifier, Fields, Tables, WhereExpr, Extras, Safe) ->
             [S1, convert(Modifier1), $\s]
     end,
 
-    ListFun = fun({_, join, _, _}=Val) ->
-        join(Val, Safe);
-                 ({_, {_, join}, _, _}=Val) ->
-        join(Val, Safe);
-                 ({_, {_, _, join}, _, _}=Val) ->
-        join(Val, Safe);
-                 (Val) ->
-        expr2(Val, Safe)
-    end,
-    S3 = [S2, make_list(Fields, ListFun)],
+    S3 = [S2, make_list(Fields, fun(Val) -> expr2(Val, Safe) end)],
     S4 = case Tables of
         undefined -> S3;
-        _Other -> [S3, <<" FROM ">>, make_list(Tables, ListFun)]
+        _Other -> [S3, <<" FROM ">>,
+                   make_list(Tables, fun(Val) -> join(Val, Safe) end)]
     end,
 
     S5 = case where(WhereExpr, Safe) of
@@ -234,7 +226,9 @@ join({Table, JoinType, Table2, JoinExpr}, Safe) ->
     join(JoinType),
     expr2(Table2, Safe),
     <<" ON ">>,
-    make_list(JoinExpr, fun(Val) -> expr(Val, Safe) end) ].
+    make_list(JoinExpr, fun(Val) -> expr(Val, Safe) end) ];
+join(Table, Safe) ->
+  expr2(Table, Safe).
 
 join(join) ->
   <<" JOIN ">>;
