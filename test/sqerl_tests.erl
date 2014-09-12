@@ -227,6 +227,9 @@ safe_test_() ->
             },
             {<<"SELECT * FROM foo CROSS JOIN bar ON (foo.bar_id = bar.id)">>,
               ?_safe_test({select,'*',{from,{foo,{cross,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo JOIN bar ON (foo.bar_id = bar.id) JOIN baz ON (bar.baz_id = baz.id)">>,
+              ?_safe_test({select,'*',{from,{foo,[ {join,bar,{'foo.bar_id','=','bar.id'}},{join,baz,{'bar.baz_id','=','baz.id'}}]}}})
             }
         ]
     }.

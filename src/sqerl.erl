@@ -221,12 +221,21 @@ select(Modifier, Fields, Tables, WhereExpr, Extras, Safe) ->
         Expr -> [S5, Expr]
     end.
 
-join({Table, JoinType, Table2, JoinExpr}, Safe) ->
+join({Table, Join, Table2, JoinExpr}, Safe) ->
   [ expr2(Table, Safe),
-    join(JoinType),
+    join(Join),
     expr2(Table2, Safe),
     <<" ON ">>,
     make_list(JoinExpr, fun(Val) -> expr(Val, Safe) end) ];
+join({Table, Joins}, Safe) when is_list(Joins) ->
+  S1 = lists:map(fun({Join, Table2, JoinExpr}) ->
+                     [ join(Join),
+                       expr2(Table2, Safe),
+                       <<" ON ">>,
+                       make_list(JoinExpr, fun(Val) -> expr(Val, Safe)end)
+                     ]
+                 end, Joins),
+  [expr2(Table, Safe), S1];
 join(Table, Safe) ->
   expr2(Table, Safe).
 
