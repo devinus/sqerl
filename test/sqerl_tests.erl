@@ -205,6 +205,9 @@ safe_test_() ->
             {<<"SELECT * FROM foo JOIN bar ON (foo.bar_id = bar.id)">>,
               ?_safe_test({select,'*',{from,{foo,join,bar,{'foo.bar_id','=','bar.id'}}}})
             },
+            {<<"SELECT * FROM foo AS f JOIN bar AS b ON (f.bar_id = b.id)">>,
+              ?_safe_test({select,'*',{from,{{foo,as,f},join,{bar,as,b},{'f.bar_id','=','b.id'}}}})
+            },
             {<<"SELECT * FROM foo JOIN bar ON ((foo.bar_id = bar.id) AND (foo.bar_type = bar.type))">>,
               ?_safe_test({select,'*',{from,{foo,join,bar,[
                                                       {'and', [
