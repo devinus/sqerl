@@ -474,6 +474,10 @@ expr2(undefined, _Safe) -> <<"NULL">>;
 expr2(Expr, _Safe) when is_atom(Expr) -> convert(Expr);
 expr2(Expr, Safe) -> expr(Expr, Safe).
 
+param({call, FuncName, []}) ->
+    [convert(FuncName), <<"()">>];
+param({call, FuncName, Params}) ->
+    [convert(FuncName), $(, make_list(Params, fun param/1), $)];
 param({Key, Value}) when is_atom(Key) ->
     [convert(Key), <<" := ">>, encode(Value)];
 param(Key) when is_atom(Key) ->

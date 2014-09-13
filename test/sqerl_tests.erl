@@ -109,6 +109,14 @@ safe_test_() ->
                 ?_safe_test({select,{call,count,[name]},{from,developer}})
             },
 
+            {<<"SELECT count(name) AS c FROM developer">>,
+                ?_safe_test({select,{{call,count,[name]},as,c},{from,developer}})
+            },
+
+            {<<"SELECT CONCAT('-- [', GROUP_CONCAT(comment.id), ']') AS comments FROM posts">>,
+              ?_safe_test({select,{{call,'CONCAT',["-- [",{call,'GROUP_CONCAT',['comment.id']},"]"]},as,comments},{from,posts}})
+            },
+
             {<<"SELECT last_insert_id()">>,
                 ?_safe_test({select,{call,last_insert_id,[]}})
             },
