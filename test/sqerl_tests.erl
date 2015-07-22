@@ -186,6 +186,14 @@ safe_test_() ->
 
             {<<"SELECT name FROM search_people(age := 18)">>,
                 ?_safe_test({select,name,{from,{call,search_people,[{age, 18}]}}})
+            },
+
+            {<<"SELECT * FROM search_people(age := 18, area := postal_area(code := 1234))">>,
+                ?_safe_test({select,'*',{from,{call,search_people,[{age, 18},{area,{call,postal_area,[{code, 1234}]}}]}}})
+            },
+
+            {<<"SELECT * FROM outer_function(column1, inner_function())">>,
+                ?_safe_test({select,'*',{from,{call,outer_function,[column1,{call,inner_function,[]}]}}})
             }
         ]
     }.
