@@ -137,8 +137,8 @@ safe_test_() ->
                                                  {select,distinct,name,{from,gymnast}}}}})
             },
 
-            {<<"SELECT name FROM developer WHERE name IN ((SELECT DISTINCT name FROM gymnast)"
-               "UNION (SELECT name FROM dancer WHERE ((name LIKE 'Mikhail%') OR (country = 'Russia')))"
+            {<<"SELECT name FROM developer WHERE name IN ((SELECT DISTINCT name FROM gymnast) "
+               "UNION (SELECT name FROM dancer WHERE ((name LIKE 'Mikhail%') OR (country = 'Russia'))) "
                "WHERE (name LIKE 'M%') ORDER BY name DESC LIMIT 5, 10)">>,
                 ?_safe_test({select,name,
                                 {from,developer},
