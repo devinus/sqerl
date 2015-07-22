@@ -432,6 +432,8 @@ param({Key, Value}) when is_atom(Key) ->
     [convert(Key), <<" := ">>, encode(Value)];
 param(Key) when is_atom(Key) ->
     convert(Key);
+param({call, _FuncName, _Params} = Call) ->
+    expr(Call, undefined);
 param(Value) ->
     encode(Value).
 
