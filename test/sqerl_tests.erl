@@ -44,12 +44,27 @@ safe_test_() ->
                                     {where,{'not',{a,'=',5}}}})
             },
 
+            {<<"UPDATE project JOIN client ON (project.client_id = client.id) SET foo = 5">>,
+                ?_safe_test({update,
+                    {project,join,client,{'project.client_id','=','client.id'}},[{foo,5}]})
+            },
+
+            {<<"UPDATE project INNER JOIN client ON (project.client_id = client.id) SET foo = 5">>,
+                ?_safe_test({update,
+                    {project,{inner,join},client,{'project.client_id','=','client.id'}},[{foo,5}]})
+            },
+
             {<<"DELETE FROM project">>,
                 ?_safe_test({delete,project})
             },
 
             {<<"DELETE FROM project WHERE (a = 5)">>,
                 ?_safe_test({delete,project,{a,'=',5}})
+            },
+
+            {<<"DELETE FROM project JOIN client ON (project.client_id = client.id) WHERE (client.a = 8)">>,
+                ?_safe_test({delete,{project,join,client,
+                      {'project.client_id','=','client.id'}},{'client.a','=',8}})
             },
 
             {<<"DELETE FROM project WHERE (a = 5)">>,
@@ -92,6 +107,14 @@ safe_test_() ->
 
             {<<"SELECT count(name) FROM developer">>,
                 ?_safe_test({select,{call,count,[name]},{from,developer}})
+            },
+
+            {<<"SELECT count(name) AS c FROM developer">>,
+                ?_safe_test({select,{{call,count,[name]},as,c},{from,developer}})
+            },
+
+            {<<"SELECT CONCAT('-- [', GROUP_CONCAT(comment.id), ']') AS comments FROM posts">>,
+              ?_safe_test({select,{{call,'CONCAT',["-- [",{call,'GROUP_CONCAT',['comment.id']},"]"]},as,comments},{from,posts}})
             },
 
             {<<"SELECT last_insert_id()">>,
@@ -137,8 +160,8 @@ safe_test_() ->
                                                  {select,distinct,name,{from,gymnast}}}}})
             },
 
-            {<<"SELECT name FROM developer WHERE name IN ((SELECT DISTINCT name FROM gymnast)"
-               "UNION (SELECT name FROM dancer WHERE ((name LIKE 'Mikhail%') OR (country = 'Russia')))"
+            {<<"SELECT name FROM developer WHERE name IN ((SELECT DISTINCT name FROM gymnast) "
+               "UNION (SELECT name FROM dancer WHERE ((name LIKE 'Mikhail%') OR (country = 'Russia'))) "
                "WHERE (name LIKE 'M%') ORDER BY name DESC LIMIT 5, 10)">>,
                 ?_safe_test({select,name,
                                 {from,developer},
@@ -186,6 +209,39 @@ safe_test_() ->
 
             {<<"SELECT name FROM search_people(age := 18)">>,
                 ?_safe_test({select,name,{from,{call,search_people,[{age, 18}]}}})
+            },
+            {<<"SELECT * FROM foo JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,join,bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo AS f JOIN bar AS b ON (f.bar_id = b.id)">>,
+              ?_safe_test({select,'*',{from,{{foo,as,f},join,{bar,as,b},{'f.bar_id','=','b.id'}}}})
+            },
+            {<<"SELECT * FROM foo JOIN bar ON ((foo.bar_id = bar.id) AND (foo.bar_type = bar.type))">>,
+              ?_safe_test({select,'*',{from,{foo,join,bar,[
+                                                      {'and', [
+                                                          {'foo.bar_id','=','bar.id'},
+                                                          {'foo.bar_type','=','bar.type'}
+                                                        ]
+                                                      }]}}})
+            },
+            {<<"SELECT * FROM foo LEFT JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{left,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo INNER JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{inner,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo RIGHT JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{right,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo LEFT OUTER JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{left,outer,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo CROSS JOIN bar ON (foo.bar_id = bar.id)">>,
+              ?_safe_test({select,'*',{from,{foo,{cross,join},bar,{'foo.bar_id','=','bar.id'}}}})
+            },
+            {<<"SELECT * FROM foo JOIN bar ON (foo.bar_id = bar.id) JOIN baz ON (bar.baz_id = baz.id)">>,
+              ?_safe_test({select,'*',{from,{foo,[ {join,bar,{'foo.bar_id','=','bar.id'}},
+                                                   {join,baz,{'bar.baz_id','=','baz.id'}} ]}}})
             }
         ]
     }.

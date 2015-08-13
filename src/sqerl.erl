@@ -204,11 +204,11 @@ select(Modifier, Fields, Tables, WhereExpr, Extras, Safe) ->
             [S1, convert(Modifier1), $\s]
     end,
 
-    ListFun = fun(Val) -> expr2(Val, Safe) end,
-    S3 = [S2, make_list(Fields, ListFun)],
+    S3 = [S2, make_list(Fields, fun(Val) -> expr2(Val, Safe) end)],
     S4 = case Tables of
         undefined -> S3;
-        _Other -> [S3, <<" FROM ">>, make_list(Tables, ListFun)]
+        _Other -> [S3, <<" FROM ">>,
+                   make_list(Tables, fun(Val) -> join(Val, Safe) end)]
     end,
 
     S5 = case where(WhereExpr, Safe) of
@@ -220,6 +220,41 @@ select(Modifier, Fields, Tables, WhereExpr, Extras, Safe) ->
         undefined -> S5;
         Expr -> [S5, Expr]
     end.
+
+join({Table, Join, Table2, JoinExpr}, Safe) ->
+  [ expr2(Table, Safe),
+    join(Join),
+    expr2(Table2, Safe),
+    <<" ON ">>,
+    make_list(JoinExpr, fun(Val) -> expr(Val, Safe) end) ];
+join({Table, Joins}, Safe) when is_list(Joins) ->
+  S1 = lists:map(fun({Join, Table2, JoinExpr}) ->
+                     [ join(Join),
+                       expr2(Table2, Safe),
+                       <<" ON ">>,
+                       make_list(JoinExpr, fun(Val) -> expr(Val, Safe)end)
+                     ]
+                 end, Joins),
+  [expr2(Table, Safe), S1];
+join(Table, Safe) ->
+  expr2(Table, Safe).
+
+join(join) ->
+  <<" JOIN ">>;
+join({left, join}) ->
+  <<" LEFT JOIN ">>;
+join({inner, join}) ->
+  <<" INNER JOIN ">>;
+join({right, join}) ->
+  <<" RIGHT JOIN ">>;
+join({left, outer, join}) ->
+  <<" LEFT OUTER JOIN ">>;
+join({right, outer, join}) ->
+  <<" RIGHT OUTER JOIN ">>;
+join({full, outer, join}) ->
+  <<" FULL OUTER JOIN ">>;
+join({cross, join}) ->
+  <<" CROSS JOIN ">>.
 
 where(undefined, _) -> [];
 where(Expr, true) when is_list(Expr); is_binary(Expr) ->
@@ -314,11 +349,16 @@ update(Table, Props, Safe) ->
 update(Table, Props, Where, Safe) when not is_list(Props) ->
     update(Table, [Props], Where, Safe);
 update(Table, Props, Where, Safe) ->
-    S1 = [<<"UPDATE ">>, convert(Table), <<" SET ">>],
+    S1 = case Table of
+        Table when is_tuple(Table) ->
+            join(Table, Safe);
+        _Other ->
+            convert(Table)
+    end,
     S2 = make_list(Props, fun({Field, Val}) ->
         [convert(Field), <<" = ">>, expr(Val, Safe)]
     end),
-    [S1, S2, where(Where, Safe)].
+    [<<"UPDATE ">>, S1, <<" SET ">>, S2, where(Where, Safe)].
 
 delete(Table, Safe) ->
     delete(Table, undefined, undefined, undefined, Safe).
@@ -327,18 +367,24 @@ delete(Table, Using, WhereExpr, Safe) ->
     delete(Table, Using, WhereExpr, undefined, Safe).
 
 delete(Table, Using, WhereExpr, Extras, Safe) ->
-    S1 = [<<"DELETE FROM ">>, convert(Table)],
-    S2 = if Using =:= undefined -> S1;
-        true -> [S1, <<" USING ">>, make_list(Using, fun convert/1)]
+    S1 = case Table of
+        Table when is_tuple(Table) ->
+            join(Table, Safe);
+        _Other ->
+            convert(Table)
     end,
-    S3 = case where(WhereExpr, Safe) of
-        undefined -> S2;
-        WhereClause -> [S2, WhereClause]
+    S2 = [<<"DELETE FROM ">>, S1],
+    S3 = if Using =:= undefined -> S2;
+        true -> [S2, <<" USING ">>, make_list(Using, fun convert/1)]
+    end,
+    S4 = case where(WhereExpr, Safe) of
+        undefined -> S3;
+        WhereClause -> [S3, WhereClause]
     end,
     if Extras =:= undefined ->
-        S3;
+        S4;
     true ->
-        [S3, extra_clause(Extras, Safe)]
+        [S4, extra_clause(Extras, Safe)]
     end.
 
 convert(Val) when is_atom(Val)->
@@ -428,6 +474,10 @@ expr2(undefined, _Safe) -> <<"NULL">>;
 expr2(Expr, _Safe) when is_atom(Expr) -> convert(Expr);
 expr2(Expr, Safe) -> expr(Expr, Safe).
 
+param({call, FuncName, []}) ->
+    [convert(FuncName), <<"()">>];
+param({call, FuncName, Params}) ->
+    [convert(FuncName), $(, make_list(Params, fun param/1), $)];
 param({Key, Value}) when is_atom(Key) ->
     [convert(Key), <<" := ">>, encode(Value)];
 param(Key) when is_atom(Key) ->
