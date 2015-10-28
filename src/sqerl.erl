@@ -360,6 +360,8 @@ expr({call, FuncName, []}, _Safe) ->
     [convert(FuncName), <<"()">>];
 expr({call, FuncName, Params}, _Safe) ->
     [convert(FuncName), $(, make_list(Params, fun param/1), $)];
+expr({over, Left, Right}, Safe) ->
+    [expr2(Left, Safe), <<" OVER ">>, $(, extra_clause(Right, Safe) ,$)];
 expr({Val, Op, {select, _} = Subquery}, Safe) ->
     subquery(Val, Op, Subquery, Safe);
 expr({Val, Op, {select, _, _} = Subquery}, Safe) ->
