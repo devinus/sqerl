@@ -288,6 +288,14 @@ unsafe_test_() ->
 
             {<<"SELECT NOT (foo = bar)">>,
                 ?_unsafe_test({select,{'!',"foo = bar"}})
+            },
+
+            {<<"SELECT row_number() OVER ( ORDER BY id DESC), bar FROM lol">>,
+             ?_unsafe_test({select, [{over, {call, row_number, []}, {order_by, [{id, desc}]}}, bar], {from, lol}})
+            },
+
+            {<<"SELECT foo FROM (SELECT foo FROM bar) AS baz">>,
+             ?_unsafe_test({select, [foo], {from, {{select, [foo], {from, bar}}, as, baz}}})
             }
         ]
     }.

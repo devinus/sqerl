@@ -356,6 +356,18 @@ expr({Table, Field}, _Safe) when is_atom(Table), is_atom(Field) ->
     [convert(Table), $., convert(Field)];
 expr({Expr1, as, Alias}, Safe) when is_atom(Alias) ->
     [expr2(Expr1, Safe), <<" AS ">>, convert(Alias)];
+expr({select, _} = Subquery, Safe) ->
+    [$(, sql2(Subquery, Safe), $) ];
+expr({select, _, _} = Subquery, Safe) ->
+    [$(, sql2(Subquery, Safe), $)];
+expr({select, _, _, _} = Subquery, Safe) ->
+     [$(, sql2(Subquery, Safe), $)];
+expr({select, _, _, _, _} = Subquery, Safe) ->
+     [$(, sql2(Subquery, Safe), $)];
+expr({select, _, _, _, _, _} = Subquery, Safe) ->
+     [$(, sql2(Subquery, Safe), $)];
+expr({select, _, _, _, _, _, _} = Subquery, Safe) ->
+     [$(, sql2(Subquery, Safe), $)];
 expr({call, FuncName, []}, _Safe) ->
     [convert(FuncName), <<"()">>];
 expr({call, FuncName, Params}, _Safe) ->
