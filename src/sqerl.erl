@@ -477,7 +477,12 @@ expr2(Expr, Safe) -> expr(Expr, Safe).
 param({call, _FuncName, _Params} = Call) ->
     expr(Call, undefined);
 param({Key, Value}) when is_atom(Key) ->
-    [convert(Key), <<" := ">>, encode(Value)];
+    case Value of
+        {call, _FuncName, _Params} = Call ->
+            [convert(Key), <<" := ">>, expr(Call, undefined)];
+        _ ->
+            [convert(Key), <<" := ">>, encode(Value)]
+    end;
 param(Key) when is_atom(Key) ->
     convert(Key);
 param(Value) ->
