@@ -210,6 +210,9 @@ safe_test_() ->
             {<<"SELECT name FROM search_people(age := 18)">>,
                 ?_safe_test({select,name,{from,{call,search_people,[{age, 18}]}}})
             },
+            {<<"SELECT name FROM search_people(age := 18, area := postal_code(code := 12345))">>,
+                ?_safe_test({select,name,{from,{call,search_people,[{age,18},{area,{call,postal_code,[{code,12345}]}}]}}})
+            },
             {<<"SELECT * FROM foo JOIN bar ON (foo.bar_id = bar.id)">>,
               ?_safe_test({select,'*',{from,{foo,join,bar,{'foo.bar_id','=','bar.id'}}}})
             },
