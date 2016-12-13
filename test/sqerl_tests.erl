@@ -16,29 +16,29 @@ safe_test_() ->
     {foreachx,
         fun (_) -> ok end,
         [
-            {<<"INSERT INTO project(foo, baz) VALUES (5, 'bob')">>,
+            {<<"INSERT INTO project(foo, baz) VALUES (5, E'bob')">>,
                 ?_safe_test({insert,project,[{foo,5},{baz,"bob"}]})
             },
 
-            {<<"INSERT INTO project(foo, bar, baz) VALUES ('a', 'b', 'c'), ('d', 'e', 'f')">>,
+            {<<"INSERT INTO project(foo, bar, baz) VALUES (E'a', E'b', E'c'), (E'd', E'e', E'f')">>,
                 ?_safe_test({insert,project,{[foo,bar,baz],[[a,b,c],[d,e,f]]}})
             },
 
-            {<<"INSERT INTO project(foo, bar, baz) VALUES ('a', 'b', 'c'), ('d', 'e', 'f')">>,
+            {<<"INSERT INTO project(foo, bar, baz) VALUES (E'a', E'b', E'c'), (E'd', E'e', E'f')">>,
                 ?_safe_test({insert,project,{[foo,bar,baz],[{a,b,c},{d,e,f}]}})
             },
 
-            {<<"INSERT INTO Documents(projectid, documentpath) VALUES (42, '/') RETURNING documentid">>,
+            {<<"INSERT INTO Documents(projectid, documentpath) VALUES (42, E'/') RETURNING documentid">>,
                 ?_safe_test({insert,'Documents',
                                     [{projectid,42},{documentpath,"/"}],
                                     {returning,documentid}})
             },
 
-            {<<"UPDATE project SET foo = 5, bar = 6, baz = 'hello'">>,
+            {<<"UPDATE project SET foo = 5, bar = 6, baz = E'hello'">>,
                 ?_safe_test({update,project,[{foo,5},{bar,6},{baz,"hello"}]})
             },
 
-            {<<"UPDATE project SET foo = 'quo\\'ted', baz = blub WHERE NOT (a = 5)">>,
+            {<<"UPDATE project SET foo = E'quo\\'ted', baz = blub WHERE NOT (a = 5)">>,
                 ?_safe_test({update,project,
                                     [{foo,"quo'ted"},{baz,blub}],
                                     {where,{'not',{a,'=',5}}}})
@@ -71,18 +71,18 @@ safe_test_() ->
                 ?_safe_test({delete,{from,project},{where,{a,'=',5}}})
             },
 
-            {<<"DELETE FROM developer WHERE NOT ((name LIKE '%Paul%') OR (name LIKE '%Gerber%'))">>,
+            {<<"DELETE FROM developer WHERE NOT ((name LIKE E'%Paul%') OR (name LIKE E'%Gerber%'))">>,
                 ?_safe_test({delete,developer,
                                     {'not',{{name,like,"%Paul%"},
                                             'or',
                                             {name,like,"%Gerber%"}}}})
             },
 
-            {<<"SELECT 'foo'">>,
+            {<<"SELECT E'foo'">>,
                 ?_safe_test({select,["foo"]})
             },
 
-            {<<"SELECT 'foo', 'bar'">>,
+            {<<"SELECT E'foo', E'bar'">>,
                 ?_safe_test({select,["foo","bar"]})
             },
 
@@ -94,7 +94,7 @@ safe_test_() ->
                 ?_safe_test({select,{foo,as,bar},{from,{baz,as,blub}}})
             },
 
-            {<<"SELECT name FROM developer WHERE (country = 'quoted \\' \\\" string')">>,
+            {<<"SELECT name FROM developer WHERE (country = E'quoted \\' \\\" string')">>,
                 ?_safe_test({select,name,
                                     {from,developer},
                                     {where,{country,'=',"quoted ' \" string"}}})
@@ -113,7 +113,7 @@ safe_test_() ->
                 ?_safe_test({select,{{call,count,[name]},as,c},{from,developer}})
             },
 
-            {<<"SELECT CONCAT('-- [', GROUP_CONCAT(comment.id), ']') AS comments FROM posts">>,
+            {<<"SELECT CONCAT(E'-- [', GROUP_CONCAT(comment.id), E']') AS comments FROM posts">>,
               ?_safe_test({select,{{call,'CONCAT',["-- [",{call,'GROUP_CONCAT',['comment.id']},"]"]},as,comments},{from,posts}})
             },
 
@@ -147,7 +147,7 @@ safe_test_() ->
                                     {group_by,[age,country],having,{age,'>',20}}})
             },
 
-            {<<"SELECT * FROM developer WHERE name IN ('Paul', 'Frank')">>,
+            {<<"SELECT * FROM developer WHERE name IN (E'Paul', E'Frank')">>,
                 ?_safe_test({select,'*',
                                     {from,developer},
                                     {where,{name,in,["Paul","Frank"]}}})
@@ -161,8 +161,8 @@ safe_test_() ->
             },
 
             {<<"SELECT name FROM developer WHERE name IN ((SELECT DISTINCT name FROM gymnast) "
-               "UNION (SELECT name FROM dancer WHERE ((name LIKE 'Mikhail%') OR (country = 'Russia'))) "
-               "WHERE (name LIKE 'M%') ORDER BY name DESC LIMIT 5, 10)">>,
+               "UNION (SELECT name FROM dancer WHERE ((name LIKE E'Mikhail%') OR (country = E'Russia'))) "
+               "WHERE (name LIKE E'M%') ORDER BY name DESC LIMIT 5, 10)">>,
                 ?_safe_test({select,name,
                                 {from,developer},
                                 {where,

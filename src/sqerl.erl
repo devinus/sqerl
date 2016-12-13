@@ -486,7 +486,7 @@ param(Value) ->
     encode(Value).
 
 quote(String) when is_list(String) ->
-    [$' | lists:reverse([$' | quote(String, [])])];
+    [$E, $' | lists:reverse([$' | quote(String, [])])];
 quote(Bin) when is_binary(Bin) ->
     list_to_binary(quote(binary_to_list(Bin))).
 
