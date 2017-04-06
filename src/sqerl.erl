@@ -146,11 +146,11 @@ sql2({Select1, union, Select2, {where, _} = Where, Extras}, Safe) ->
 sql2({Select1, union_all, Select2}, Safe) ->
     [$(, sql2(Select1, Safe), <<") UNION ALL (">>, sql2(Select2, Safe), $)];
 sql2({Select1, union_all, Select2, {where, WhereExpr}}, Safe) ->
-    [sql2({Select1, union, Select2}, Safe), where(WhereExpr, Safe)];
+    [sql2({Select1, union_all, Select2}, Safe), where(WhereExpr, Safe)];
 sql2({Select1, union_all, Select2, Extras}, Safe) ->
-    [sql2({Select1, union, Select2}, Safe), extra_clause(Extras, Safe)];
+    [sql2({Select1, union_all, Select2}, Safe), extra_clause(Extras, Safe)];
 sql2({Select1, union_all, Select2, {where, _} = Where, Extras}, Safe) ->
-    [sql2({Select1, union, Select2, Where}, Safe), extra_clause(Extras, Safe)];
+    [sql2({Select1, union_all, Select2, Where}, Safe), extra_clause(Extras, Safe)];
 
 sql2({insert, Table, Params}, _Safe) ->
     insert(Table, Params);
@@ -423,6 +423,12 @@ expr({Val, Op, {_, union, _} = Subquery}, Safe) ->
 expr({Val, Op, {_, union, _, _} = Subquery}, Safe) ->
     subquery(Val, Op, Subquery, Safe);
 expr({Val, Op, {_, union, _, _, _} = Subquery}, Safe) ->
+    subquery(Val, Op, Subquery, Safe);
+expr({Val, Op, {_, union_all, _} = Subquery}, Safe) ->
+    subquery(Val, Op, Subquery, Safe);
+expr({Val, Op, {_, union_all, _, _} = Subquery}, Safe) ->
+    subquery(Val, Op, Subquery, Safe);
+expr({Val, Op, {_, union_all, _, _, _} = Subquery}, Safe) ->
     subquery(Val, Op, Subquery, Safe);
 expr({_, in, []}, _Safe) -> <<"0">>;
 expr({Val, Op, Values}, Safe) when (Op =:= in orelse
