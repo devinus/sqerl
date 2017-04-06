@@ -127,6 +127,29 @@ safe_test_() ->
                              {select,name,{from,project}}})
             },
 
+            {<<"(SELECT name FROM person) UNION ALL (SELECT name FROM project)">>,
+                ?_safe_test({{select,name,{from,person}},
+                             union_all,
+                             {select,name,{from,project}}})
+            },
+
+            {<<"SELECT id FROM person WHERE id IN ((SELECT 1) UNION ALL (SELECT 1))">>,
+                ?_safe_test({select, id,
+                             {from, person},
+                             {where, {id, in, {{select, 1},
+                                               union_all,
+                                               {select, 1}}}}})
+            },
+
+            {<<"SELECT id FROM person WHERE id IN ((SELECT 1) UNION ALL (SELECT 1) WHERE (2 = 1))">>,
+                ?_safe_test({select, id,
+                             {from, person},
+                             {where, {id, in, {{select, 1},
+                                               union_all,
+                                               {select, 1},
+                                               {where, {2, '=', 1}}}}}})
+            },
+
             {<<"SELECT DISTINCT name FROM person LIMIT 5">>,
                 ?_safe_test({select,distinct,name,{from,person},{limit,5}})
             },
